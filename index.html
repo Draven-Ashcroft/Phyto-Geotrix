@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gravitropism — The Observation Experiment</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0e0f12;
+    color: #fff;
+    font-family: Roboto, "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 32px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .wrap { width: 100%; max-width: 960px; }
+  .app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .app-icon-wrap {
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle, rgba(90,160,255,0.32), rgba(90,160,255,0) 72%);
+    box-shadow: 0 0 24px 7px rgba(80,150,255,0.4);
+  }
+  .app-title { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; margin: 0; color: #fff; }
+  .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin: 0 0 16px 0; }
+  .panel {
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #131519;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  svg { width: 100%; height: auto; display: block; }
+  .mini-icon { width: 18px !important; height: 18px !important; flex-shrink: 0; }
+  .controls {
+    margin-top: 14px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #131519;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  button {
+    display: flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; border-radius: 50%; padding: 0;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent; color: rgba(255,255,255,0.75);
+    cursor: pointer; transition: background .15s, color .15s, box-shadow .3s, border-color .3s;
+    font-family: inherit;
+  }
+  button svg { width: 22px; height: 22px; display: block; }
+  button:hover { background: rgba(255,255,255,0.1); }
+  button.active {
+    background: radial-gradient(circle, rgba(90,160,255,0.22), rgba(90,160,255,0) 75%);
+    border-color: rgba(120,180,255,0.5); color: #fff;
+    box-shadow: 0 0 16px 3px rgba(80,150,255,0.4);
+  }
+  button.pulse { animation: btnPulse 0.6s ease; }
+  @keyframes btnPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(80,150,255,0.55); }
+    55%  { box-shadow: 0 0 18px 6px rgba(80,150,255,0.35); }
+    100% { box-shadow: 0 0 0 0 rgba(80,150,255,0); }
+  }
+  .slider-row { flex: 1; min-width: 220px; display: flex; align-items: center; gap: 10px; }
+  input[type=range] { flex: 1; accent-color: rgba(255,255,255,0.85); }
+  .readout { font-size: 14px; color: rgba(255,255,255,0.7); width: 62px; text-align: right; font-variant-numeric: tabular-nums; }
+  .narration-cards { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat-card {
+    flex: 1; min-width: 150px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #131519; border-radius: 12px; padding: 12px 14px;
+    border-left: 3px solid var(--accent, rgba(255,255,255,0.3));
+  }
+  .stat-card .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: rgba(255,255,255,0.4); margin: 0 0 4px; }
+  .stat-card p { font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.4; margin: 0; }
+  .narration-full {
+    margin-top: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-left: 3px solid rgba(52,211,153,0.6);
+    background: #131519; border-radius: 12px; padding: 12px 14px;
+    display: none;
+  }
+  .narration-full p { font-size: 13px; color: rgba(255,255,255,0.9); line-height: 1.4; margin: 0; }
+  .caption { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; margin-top: 12px; }
+  #magnifier { transition: opacity .3s ease; cursor: grab; touch-action: none; }
+  #magnifier.dragging { cursor: grabbing; }
+  #magBioText { transition: opacity .35s ease; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app-header">
+    <div class="app-icon-wrap">
+      <svg viewBox="0 0 44 44" style="width:46px !important;height:46px !important;">
+        <circle cx="22" cy="22" r="20" fill="#16202c"></circle>
+        <path d="M22 11 C22 11 13 18 13 27 C13 32 17 35.5 21.5 35.5" fill="none" stroke="#bcdcff" stroke-width="2.6" stroke-linecap="round"></path>
+        <path d="M17 31 L21.5 35.5 L26 30.5" fill="none" stroke="#bcdcff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </div>
+    <h2 class="app-title">Geotropism Stimulator</h2>
+  </div>
+  <p class="subtitle">Drag the magnifier onto a tip, then tilt the pot to see auxin redistribute and the tip curl.</p>
+
+  <div class="panel">
+    <svg id="scene" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bgGlow" cx="50%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#1c2027" />
+          <stop offset="100%" stop-color="#0e0f12" />
+        </radialGradient>
+        <linearGradient id="soilGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#5a4028" />
+          <stop offset="45%" stop-color="#3c2818" />
+          <stop offset="100%" stop-color="#20140a" />
+        </linearGradient>
+        <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.10)" />
+          <stop offset="45%" stop-color="rgba(255,255,255,0.03)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0.08)" />
+        </linearGradient>
+        <linearGradient id="glassHighlight" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+        </linearGradient>
+        <radialGradient id="groundShadow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(0,0,0,0.5)" />
+          <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+        </radialGradient>
+        <linearGradient id="stemGradV" x1="0" y1="60" x2="0" y2="285" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#8fd35f" />
+          <stop offset="100%" stop-color="#3c6b28" />
+        </linearGradient>
+        <linearGradient id="rootGrad" x1="0" y1="285" x2="0" y2="430" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#c9a876" />
+          <stop offset="100%" stop-color="#f0e2c4" />
+        </linearGradient>
+        <clipPath id="soilClipLeft"><path id="soilClipLeftPath" d=""></path></clipPath>
+        <clipPath id="soilClipRight"><path id="soilClipRightPath" d=""></path></clipPath>
+        <radialGradient id="leafGrad" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#7ec24f" />
+          <stop offset="100%" stop-color="#3f7a2c" />
+        </radialGradient>
+        <radialGradient id="cotyledonGrad" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#a3d97e" />
+          <stop offset="100%" stop-color="#6fa84a" />
+        </radialGradient>
+        <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.2" flood-color="#000" flood-opacity="0.4" />
+        </filter>
+        <pattern id="cellPattern" width="14" height="10" patternUnits="userSpaceOnUse">
+          <rect width="14" height="10" fill="#ecdfb8"></rect>
+          <rect x="0.5" y="0.5" width="13" height="9" fill="none" stroke="rgba(110,90,55,0.4)" stroke-width="1"></rect>
+        </pattern>
+        <radialGradient id="auxinGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fffdf2"></stop>
+          <stop offset="40%" stop-color="#ffcc33"></stop>
+          <stop offset="75%" stop-color="#e08f10"></stop>
+          <stop offset="100%" stop-color="#8a570a" stop-opacity="0"></stop>
+        </radialGradient>
+        <radialGradient id="lensGlass" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.16)"></stop>
+          <stop offset="100%" stop-color="rgba(8,10,13,0.9)"></stop>
+        </radialGradient>
+        <radialGradient id="auxinRedZone" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(205,45,35,0.6)"></stop>
+          <stop offset="60%" stop-color="rgba(190,35,30,0.32)"></stop>
+          <stop offset="100%" stop-color="rgba(190,35,30,0)"></stop>
+        </radialGradient>
+        <clipPath id="lensClip"><circle cx="0" cy="0" r="156"></circle></clipPath>
+        <!-- Generous clip that contains the root body even at maximum cell growth — a safety net, not a tight fit -->
+        <clipPath id="capBodyClip"><path id="capBodyClipPath" d=""></path></clipPath>
+        <marker id="magArrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#f0c231"></path>
+        </marker>
+        <filter id="lensShadow" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.5" />
+        </filter>
+      </defs>
+
+      <rect x="0" y="0" width="900" height="500" fill="url(#bgGlow)"></rect>
+      <line x1="20" y1="430" x2="880" y2="430" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"></line>
+      <line x1="450" y1="60" x2="450" y2="430" stroke="rgba(255,255,255,0.06)" stroke-width="1"></line>
+
+      <line x1="450" y1="70" x2="450" y2="200" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-dasharray="3 4"></line>
+      <path d="M 442 195 L 450 214 L 458 195 Z" fill="rgba(255,255,255,0.55)"></path>
+      <text x="450" y="58" text-anchor="middle" font-size="12" fill="rgba(255,255,255,0.6)">Gravity</text>
+
+      <g id="leftAssembly">
+        <g id="leftPot"></g>
+        <g id="leftPlant"></g>
+      </g>
+      <g id="gravityFxLeft"></g>
+      <text x="240" y="470" text-anchor="middle" font-size="13" font-weight="600" fill="white">Left Pot</text>
+      <text x="240" y="486" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)">(Control)</text>
+
+      <g id="rightAssembly">
+        <g id="rightPot"></g>
+        <g id="rightPlant"></g>
+      </g>
+      <g id="gravityFxRight"></g>
+      <text x="660" y="470" text-anchor="middle" font-size="13" font-weight="600" fill="white">Right Pot</text>
+      <text x="660" y="486" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.5)">(Experimental)</text>
+      <g id="callouts"></g>
+
+      <g id="magnifier" opacity="0" style="display:none;">
+        <line id="magHandle" x1="114" y1="114" x2="209" y2="209" stroke="#c9c9c9" stroke-width="11" stroke-linecap="round"></line>
+        <line x1="114" y1="114" x2="209" y2="209" stroke="rgba(0,0,0,0.35)" stroke-width="11" stroke-linecap="round" transform="translate(0,2)"></line>
+        <circle r="164" fill="url(#lensGlass)" filter="url(#lensShadow)"></circle>
+        <g clip-path="url(#lensClip)">
+          <rect x="-164" y="-164" width="328" height="328" fill="#0c0e11"></rect>
+          <!-- Deformable cell mesh — pre-allocated <path> elements whose vertices are
+               updated each frame via updateCellGrid(stim, curlAngle). This is now the
+               ONLY visual for the root body — no separate static outline that could
+               fall out of sync with the bend. -->
+          <g id="magCellGrid" clip-path="url(#capBodyClip)"></g>
+          <path id="magArrow" d="" fill="none" stroke="#f0c231" stroke-width="3.5" stroke-linecap="round" marker-end="url(#magArrowHead)"></path>
+          <rect id="magTint" x="-138" y="-64" width="272" height="128" fill="transparent" opacity="0"></rect>
+          <ellipse id="magRedZone" cx="0" cy="0" rx="0" ry="0" fill="url(#auxinRedZone)"></ellipse>
+          <g id="magParticles"></g>
+        </g>
+        <circle r="156" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="4"></circle>
+        <circle r="156" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1" transform="translate(1.2,1.2)"></circle>
+        <text id="magLabelText" y="183" text-anchor="middle" font-size="16" font-weight="600" fill="white"></text>
+        <text id="magBioText" y="201" text-anchor="middle" font-size="12" font-weight="600" fill="rgba(255,150,140,0.95)" opacity="0"></text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="controls">
+    <button id="tiltBtn" class="active" title="Tilted 45° left — tap to stand upright">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="3" x2="12" y2="8" stroke-linecap="round" opacity="0.5"></line>
+        <g transform="rotate(-40 12 15)">
+          <rect x="8.5" y="10.5" width="7" height="9" rx="1.4"></rect>
+          <line x1="12" y1="10.5" x2="12" y2="8.5" stroke-linecap="round"></line>
+        </g>
+        <circle cx="12" cy="15" r="1.1" fill="currentColor" stroke="none"></circle>
+      </svg>
+    </button>
+    <button id="playBtn" title="Play">
+      <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path d="M8 5.5v13l11-6.5z"></path>
+      </svg>
+    </button>
+    <button id="resetBtn" title="Reset to t = 0h">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" stroke-linecap="round"></path>
+        <path d="M19.5 4.5v5h-5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </button>
+    <button id="gravityBtn" title="Simulate Gravity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="4" x2="12" y2="14" stroke-linecap="round"></line>
+        <path d="M7.5 10.5 12 15l4.5-4.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <line x1="8" y1="19.5" x2="16" y2="19.5" stroke-linecap="round" opacity="0.45"></line>
+      </svg>
+    </button>
+    <button id="magBtn" title="Show Magnifier">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="10.3" cy="10.3" r="6"></circle>
+        <line x1="14.8" y1="14.8" x2="20" y2="20" stroke-linecap="round"></line>
+      </svg>
+    </button>
+    <div class="slider-row">
+      <svg class="mini-icon" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" style="flex-shrink:0">
+        <circle cx="12" cy="12.5" r="8"></circle>
+        <path d="M12 8v5l3.5 2" stroke-linecap="round" stroke-linejoin="round"></path>
+        <line x1="9.5" y1="2" x2="14.5" y2="2" stroke-linecap="round"></line>
+      </svg>
+      <input type="range" id="hoursSlider" min="0" max="72" value="24" />
+      <span class="readout" id="hoursReadout">t = 24h</span>
+    </div>
+  </div>
+
+  <div class="narration-full" id="narrationFull">
+    <p id="narrationFullText"></p>
+  </div>
+  <div class="narration-cards" id="narrationCards">
+    <div class="stat-card" style="--accent: rgba(140,210,110,0.7)">
+      <p class="label">Shoot</p>
+      <p id="shootStat"></p>
+    </div>
+    <div class="stat-card" style="--accent: rgba(224,196,143,0.7)">
+      <p class="label">Root</p>
+      <p id="rootStat"></p>
+    </div>
+  </div>
+
+  <p class="caption">
+    Muted color = growth that already existed when the pot was tilted (rigid, doesn't re-bend). Bright color =
+    growth added since then, which steers back toward vertical over time — faster in the root than the shoot
+    in this model. Bending is concentrated near the tip, in the elongation zone, as it is in real plants.
+  </p>
+</div>
+
+<script>
+/* =======================================================================
+   IMPROVEMENTS APPLIED (all 9):
+   1. Bending schedule via smoothstep (zero derivative at both ends — no
+      dead-flat zone, no kink at the tip; fixed from an earlier Power^2.2
+      version that crammed all correction into the last 30% of the path)
+   2. Catmull-Rom spline smoothing on all ribbon paths
+   3. Pre-tilt segment subdivided (8 pts) — no more hard kink at tilt point
+   4. Biological lag phase (0.75h) before correction begins
+   5. Organic wobble: multi-frequency fBm with stable per-organ seed
+   6. Color transition zone at tilt point (4-step gradient band)
+   7. Lateral roots follow local tangent + proper gravity-aligned geometry
+   8. Width taper uses power curve (convex) instead of linear
+   9. Magnifier: stimulation still driven by hours × tilt (same exponential
+      model as the main organs), but the tip mechanism was later rebuilt —
+      no longer a single rotated piece; a per-cell mesh bends along a
+      smoothstep-eased curved centerline instead, so there's no seam to
+      fall out of sync (see the DEFORMABLE, BENDING CELL MESH section)
+   ======================================================================= */
+
+const SHOOT_TAU = 14;
+const ROOT_TAU  = 8;
+const SHOOT_RATE = 1.26;
+const ROOT_RATE  = 1.56;
+const SHOOT_PRETILT = 41;
+const ROOT_PRETILT  = 29;
+const TILT_ANGLE   = -45; // negative = tilts left
+const MAX_HOURS    = 72;
+const TILT_ANIM_MS = 1400;
+const LAG_H        = 0.75;  // [4] hours before correction starts
+const PRE_STEPS    = 8;     // [3] subdivisions in rigid pre-tilt section
+
+// [5] Stable per-organ wobble seeds — deterministic, no per-frame randomness
+const WOBBLE_SEEDS = {
+  leftShoot:  0.73,
+  leftRoot:   1.41,
+  rightShoot: 2.07,
+  rightRoot:  3.14,
+};
+
+const groundY = 430, potW = 145, potH = 195, soilDepth = 145;
+const leftX = 240, rightX = 660;
+const soilSurfaceY = groundY - soilDepth;
+
+function toRad(deg) { return (deg * Math.PI) / 180; }
+function rotatePoint(dx, dy, deg) {
+  const r = toRad(deg), c = Math.cos(r), s = Math.sin(r);
+  return { x: dx * c - dy * s, y: dx * s + dy * c };
+}
+// Classic smoothstep: 3x² − 2x³. Zero derivative at both x=0 and x=1, so it
+// blends in from the start (no flat dead zone) and settles smoothly at the
+// tip (no kink there either) — unlike a bare power curve, which is nearly
+// flat for most of its range and then ramps sharply near x=1.
+function smoothstep(x) {
+  const t = Math.max(0, Math.min(1, x));
+  return t * t * (3 - 2 * t);
+}
+
+function soilPolygonPath(cx, tiltDeg) {
+  const topW = potW * 1.14;
+  const soilTopY = groundY - soilDepth;
+  const soilTopHalf = potW / 2 + (topW / 2 - potW / 2) * (soilDepth / potH);
+  const pivotX = cx, pivotY = groundY - potH / 2;
+  const local = [
+    { x: cx - potW / 2, y: groundY },
+    { x: cx - soilTopHalf, y: soilTopY },
+    { x: cx + soilTopHalf, y: soilTopY },
+    { x: cx + potW / 2, y: groundY },
+  ];
+  const world = local.map((p) => {
+    const rel = rotatePoint(p.x - pivotX, p.y - pivotY, tiltDeg);
+    return { x: pivotX + rel.x, y: pivotY + rel.y };
+  });
+  return `M ${world.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" L ")} Z`;
+}
+
+/* -----------------------------------------------------------------------
+   [3] Pre-tilt subdivided, [1] bending concentrated near tip,
+   [4] lag phase, [5] organic wobble
+   ----------------------------------------------------------------------- */
+function buildOrganPath({ originX, originY, preTilt, rate, tau, hours, vSign, tiltDeg, steps = 90, wobble = 1.2, wobbleSeed = 0 }) {
+  const preRad = toRad(tiltDeg);
+
+  // [3] Subdivide the rigid pre-tilt section into PRE_STEPS points
+  const pts = [];
+  for (let i = 0; i <= PRE_STEPS; i++) {
+    const frac = i / PRE_STEPS;
+    pts.push({
+      x: originX + Math.sin(preRad) * preTilt * frac,
+      y: originY + vSign * Math.cos(preRad) * preTilt * frac,
+    });
+  }
+  const tiltPoint = { x: pts[PRE_STEPS].x, y: pts[PRE_STEPS].y };
+  const splitIndex = PRE_STEPS; // index where new growth begins
+
+  let x = tiltPoint.x, y = tiltPoint.y;
+  const totalNew = rate * hours;
+  const segLen = totalNew / steps;
+
+  for (let i = 1; i <= steps; i++) {
+    // [1] Spatial schedule: concentrate bending near the tip
+    // s=0 → base of new growth, s=1 → tip
+    const s = i / steps;
+    // Smoothstep time mapping: blends in gradually from the base instead of
+    // staying flat for ~70% of the length and dumping all correction into
+    // the last stretch (which read as a hook, not a curve).
+    const t_spatial = hours * smoothstep(s);
+
+    // [4] Lag phase: correction only starts after LAG_H hours
+    const effectiveT = Math.max(0, t_spatial - LAG_H);
+    const corrected = tiltDeg * Math.exp(-effectiveT / tau);
+
+    // [5] Organic multi-frequency wobble with stable seed, amplitude grows toward tip
+    const wobAmplitude = wobble * Math.pow(s, 0.5);
+    const wob = (
+      Math.sin(i * 0.29 + wobbleSeed) * 0.65 +
+      Math.sin(i * 0.11 + wobbleSeed * 1.73) * 0.40 +
+      Math.sin(i * 0.47 + wobbleSeed * 0.61) * 0.20
+    ) * wobAmplitude;
+
+    const rad = toRad(corrected + wob);
+    x += Math.sin(rad) * segLen;
+    y += vSign * Math.cos(rad) * segLen;
+    pts.push({ x, y });
+  }
+
+  // Tip angle: account for lag phase
+  const tipAngleDeg = tiltDeg * Math.exp(-Math.max(0, hours - LAG_H) / tau);
+  return { pts, tiltPoint, tipAngleDeg, splitIndex };
+}
+
+function sampleAt(pts, frac) {
+  const idx = Math.max(1, Math.min(pts.length - 1, Math.round(frac * (pts.length - 1))));
+  const p = pts[idx], prev = pts[Math.max(0, idx - 1)];
+  const angle = (Math.atan2(p.x - prev.x, -(p.y - prev.y)) * 180) / Math.PI;
+  return { x: p.x, y: p.y, angle };
+}
+
+/* -----------------------------------------------------------------------
+   [8] Convex power taper — thick at base, narrows quickly, thin tip
+   ----------------------------------------------------------------------- */
+function taperWidths(n, wStart, wEnd) {
+  const arr = [];
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const curved = Math.pow(t, 1.75); // convex: most narrowing happens early
+    arr.push(wStart + (wEnd - wStart) * curved);
+  }
+  return arr;
+}
+
+/* -----------------------------------------------------------------------
+   [2] Catmull-Rom spline → SVG cubic Bezier path
+   ----------------------------------------------------------------------- */
+function catmullRomD(pts, startCmd = 'M') {
+  if (pts.length < 2) return '';
+  let d = `${startCmd} ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[Math.min(pts.length - 1, i + 2)];
+    // Catmull-Rom → Bezier control points (tension = 1/6)
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function ribbonPath(pts, widths) {
+  const n = pts.length, left = [], right = [];
+  for (let i = 0; i < n; i++) {
+    const p = pts[i];
+    const prev = pts[Math.max(0, i - 1)];
+    const next = pts[Math.min(n - 1, i + 1)];
+    const dx = next.x - prev.x, dy = next.y - prev.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len, w = widths[i];
+    left.push({ x: p.x + (nx * w) / 2, y: p.y + (ny * w) / 2 });
+    right.push({ x: p.x - (nx * w) / 2, y: p.y - (ny * w) / 2 });
+  }
+  // [2] Use Catmull-Rom curves on both sides of the ribbon
+  const fwd  = catmullRomD(left, 'M');
+  const back = catmullRomD(right.slice().reverse(), 'L');
+  return `${fwd} ${back} Z`;
+}
+
+function leafPath(cx, cy, angleDeg, length, width) {
+  const r = toRad(angleDeg);
+  const tipX = cx + Math.sin(r) * length, tipY = cy - Math.cos(r) * length;
+  const perpX = Math.cos(r) * (width / 2), perpY = Math.sin(r) * (width / 2);
+  const midX = cx + Math.sin(r) * (length * 0.5), midY = cy - Math.cos(r) * (length * 0.5);
+  return {
+    d: `M ${cx} ${cy} Q ${midX + perpX} ${midY + perpY} ${tipX} ${tipY} Q ${midX - perpX} ${midY - perpY} ${cx} ${cy} Z`,
+    vein: `M ${cx} ${cy} L ${tipX} ${tipY}`,
+  };
+}
+
+const GRAVITY_CYCLE = 900;
+const GRAVITY_TRAVEL = 46;
+const GRAVITY_OFFSETS = [-40, -18, 0, 18, 40];
+
+function gravityLineAt(cx, dx, i, elapsed) {
+  const phase = (i * GRAVITY_CYCLE) / GRAVITY_OFFSETS.length;
+  const frac = ((elapsed + phase) % GRAVITY_CYCLE) / GRAVITY_CYCLE;
+  const yOff = GRAVITY_TRAVEL * frac;
+  let op = frac < 0.15 ? frac / 0.15 : frac > 0.75 ? (1 - frac) / 0.25 : 1;
+  op *= 0.45;
+  const len = Math.abs(dx) < 5 ? 20 : Math.abs(dx) < 25 ? 15 : 12;
+  const w = Math.abs(dx) < 5 ? 1.4 : 1.1;
+  const y1 = groundY + 10 + yOff;
+  return `<line x1="${cx + dx}" y1="${y1.toFixed(1)}" x2="${cx + dx}" y2="${(y1 + len).toFixed(1)}" stroke="rgba(255,255,255,${op.toFixed(2)})" stroke-width="${w}" stroke-linecap="round"></line>`;
+}
+
+function gravityLinesFrame(cx, elapsed) {
+  return GRAVITY_OFFSETS.map((dx, i) => gravityLineAt(cx, dx, i, elapsed)).join("");
+}
+
+function potInnerSVG(cx) {
+  const topW = potW * 1.14, rimRy = 9;
+  const jarPath = `M ${cx - potW / 2} ${groundY} L ${cx - topW / 2} ${groundY - potH} L ${cx + topW / 2} ${groundY - potH} L ${cx + potW / 2} ${groundY} Z`;
+  const soilTopY = groundY - soilDepth;
+  const soilTopHalf = potW / 2 + (topW / 2 - potW / 2) * (soilDepth / potH);
+  const soilPath = `M ${cx - potW / 2} ${groundY} L ${cx - soilTopHalf} ${soilTopY} L ${cx + soilTopHalf} ${soilTopY} L ${cx + potW / 2} ${groundY} Z`;
+  let texture = "";
+  for (let i = 0; i < 14; i++) {
+    const tx = cx - potW / 2 + 6 + ((i * 29) % (potW - 12));
+    const ty = soilTopY + 5 + ((i * 41) % (soilDepth - 8));
+    const r = 0.8 + (i % 4) * 0.5;
+    const fill = i % 3 === 0 ? "rgba(255,220,180,0.10)" : "rgba(0,0,0,0.35)";
+    texture += `<circle cx="${tx}" cy="${ty}" r="${r}" fill="${fill}"></circle>`;
+  }
+  return `
+    <ellipse cx="${cx}" cy="${groundY + 8}" rx="${potW * 0.68}" ry="9" fill="url(#groundShadow)"></ellipse>
+    <path d="${soilPath}" fill="url(#soilGrad)"></path>
+    <ellipse cx="${cx}" cy="${soilTopY}" rx="${soilTopHalf}" ry="${soilTopHalf * 0.16}" fill="#241608" opacity="0.55"></ellipse>
+    ${texture}
+    <path d="${jarPath}" fill="url(#glassGrad)" stroke="rgba(255,255,255,0.28)" stroke-width="1.4"></path>
+    <path d="M ${cx - topW / 2 + 10} ${groundY - potH + 14} L ${cx - potW * 0.26} ${groundY - potH * 0.3}" stroke="url(#glassHighlight)" stroke-width="3.5" stroke-linecap="round" opacity="0.4"></path>
+    <path d="M ${cx + topW * 0.3} ${groundY - potH + 12} L ${cx + potW * 0.36} ${groundY - potH * 0.55}" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-linecap="round"></path>
+    <ellipse cx="${cx}" cy="${groundY - potH}" rx="${topW / 2}" ry="${rimRy}" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.4"></ellipse>
+  `;
+}
+
+/* -----------------------------------------------------------------------
+   [6] Color transition at tilt point — 4-step gradient band
+   Root muted: #8a7a63 → vivid start ≈ #c9a876
+   Shoot muted: #5b6b52 → vivid start ≈ #5b8f3e
+   ----------------------------------------------------------------------- */
+const ROOT_TRANSITION  = ["#8a7a63", "#9d8a6a", "#b39572", "#c4a876"];
+const SHOOT_TRANSITION = ["#5b6b52", "#5f7850", "#648a4f", "#6c9d4a"];
+
+function transitionBandMarkup(pts, splitIndex, widths, colors) {
+  const BLEND_PTS = 5; // number of steps for the transition
+  const start = Math.max(0, splitIndex - 1);
+  const end   = Math.min(pts.length - 1, splitIndex + BLEND_PTS + 1);
+  let html = "";
+  for (let k = 0; k < colors.length; k++) {
+    const frac = (k + 1) / (colors.length + 1);
+    const si = Math.round(start + frac * (end - start));
+    const seg = pts.slice(Math.max(0, si - 1), Math.min(pts.length, si + 2));
+    if (seg.length < 2) continue;
+    const segW = widths.slice(Math.max(0, si - 1), Math.min(widths.length, si + 2));
+    html += `<path d="${ribbonPath(seg, segW)}" fill="${colors[k]}" opacity="0.92"></path>`;
+  }
+  return html;
+}
+
+function organMarkup(pts, wStart, wEnd, vividFill, mutedFill, splitIndex) {
+  const widths = taperWidths(pts.length, wStart, wEnd);
+  if (splitIndex === undefined) {
+    // Control plant — no split
+    return `<g filter="url(#softShadow)"><path d="${ribbonPath(pts, widths)}" fill="${vividFill}"></path></g>`;
+  }
+
+  // [6] Transition colors depend on which organ it is
+  const transColors = (mutedFill === "#8a7a63") ? ROOT_TRANSITION : SHOOT_TRANSITION;
+
+  // Rigid (pre-tilt) section — slightly past the split point so overlap hides the seam
+  const rigidPts   = pts.slice(0, splitIndex + 3);
+  const rigidWidths = widths.slice(0, splitIndex + 3);
+
+  // New growth section — slightly behind split point to overlap
+  const newPts   = pts.slice(Math.max(0, splitIndex - 1));
+  const newWidths = widths.slice(Math.max(0, splitIndex - 1));
+
+  // Transition band between them
+  const blend = transitionBandMarkup(pts, splitIndex, widths, transColors);
+
+  return `<g filter="url(#softShadow)">
+    <path d="${ribbonPath(rigidPts, rigidWidths)}" fill="${mutedFill}"></path>
+    <path d="${ribbonPath(newPts, newWidths)}" fill="${vividFill}"></path>
+    ${blend}
+  </g>`;
+}
+
+function leavesMarkup(pts) {
+  const tip = sampleAt(pts, 1), cot = sampleAt(pts, 0.16);
+  const cotL = leafPath(cot.x, cot.y, cot.angle - 40, 17, 11);
+  const cotR = leafPath(cot.x, cot.y, cot.angle + 40, 17, 11);
+  const leafA = leafPath(tip.x, tip.y, tip.angle - 22, 22, 13);
+  const leafB = leafPath(tip.x, tip.y, tip.angle + 26, 24, 14);
+  return `<g filter="url(#softShadow)">
+    <path d="${cotL.d}" fill="url(#cotyledonGrad)"></path>
+    <path d="${cotR.d}" fill="url(#cotyledonGrad)"></path>
+    <path d="${leafB.d}" fill="url(#leafGrad)"></path>
+    <path d="${leafA.d}" fill="url(#leafGrad)"></path>
+    <path d="${leafA.vein}" stroke="rgba(20,50,10,0.4)" stroke-width="0.8"></path>
+    <path d="${leafB.vein}" stroke="rgba(20,50,10,0.4)" stroke-width="0.8"></path>
+  </g>`;
+}
+
+/* -----------------------------------------------------------------------
+   [7] Lateral roots follow local tangent and proper gravity-biased geometry
+   ----------------------------------------------------------------------- */
+function lateralsMarkup(pts) {
+  const fracs = [0.28, 0.50, 0.72];
+  let lines = "";
+  fracs.forEach((f, i) => {
+    const p = sampleAt(pts, f);
+    const dir = i % 2 === 0 ? 1 : -1;
+    const len = 14 + (i % 2) * 8;
+    // [7] Lateral angle = local organ angle ± ~70°, biased slightly downward toward gravity
+    const lateralAngleDeg = p.angle + dir * 68;
+    const a = toRad(lateralAngleDeg);
+    // Correct trig: project in the direction of lateralAngleDeg
+    const x2 = p.x + Math.sin(a) * len;
+    // For roots (going downward), subtract cos so y increases downward
+    const y2 = p.y - Math.cos(a) * len;
+    const sw = 1.7 - i * 0.3;
+    lines += `<line x1="${p.x.toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke-width="${sw.toFixed(1)}"></line>`;
+  });
+  return `<g stroke="#b8916e" stroke-linecap="round" opacity="0.65">${lines}</g>`;
+}
+
+function plantMarkup(shoot, root, split, rootClipId) {
+  // split ? show muted/vivid divide : control plant (all vivid)
+  const splitIdx = split ? root.splitIndex : undefined;
+  const shootSplitIdx = split ? shoot.splitIndex : undefined;
+
+  const rootGroup = `<g clip-path="url(#${rootClipId})">${lateralsMarkup(root.pts)}${organMarkup(root.pts, 5, 1, "url(#rootGrad)", "#8a7a63", splitIdx)}</g>`;
+  const shootGroup = organMarkup(shoot.pts, 7.5, 2.5, "url(#stemGradV)", "#5b6b52", shootSplitIdx) + leavesMarkup(shoot.pts);
+  return rootGroup + shootGroup;
+}
+
+function tiltDotsMarkup(shoot, root, tilted) {
+  if (!tilted) return "";
+  return `<circle cx="${shoot.tiltPoint.x}" cy="${shoot.tiltPoint.y}" r="3" fill="white" opacity="0.65"></circle>
+          <circle cx="${root.tiltPoint.x}" cy="${root.tiltPoint.y}" r="3" fill="white" opacity="0.65"></circle>`;
+}
+
+function calloutsMarkup(shoot, root, tiltDeg, tilted, hours) {
+  if (!(tilted && hours >= 6)) return "";
+  const dir = tiltDeg < 0 ? -1 : 1;
+  const anchor = tiltDeg < 0 ? "end" : "start";
+  const sTip = shoot.pts[shoot.pts.length - 1];
+  const rTip = root.pts[root.pts.length - 1];
+  return `
+    <text x="${sTip.x + 14 * dir}" y="${sTip.y}" text-anchor="${anchor}" font-size="11" fill="#a8d68a">Negative Geotropism</text>
+    <text x="${sTip.x + 14 * dir}" y="${sTip.y + 13}" text-anchor="${anchor}" font-size="11" fill="rgba(255,255,255,0.5)">(Shoot)</text>
+    <text x="${rTip.x + 14 * dir}" y="${rTip.y}" text-anchor="${anchor}" font-size="11" fill="#e0c48f">Positive Geotropism</text>
+    <text x="${rTip.x + 14 * dir}" y="${rTip.y + 13}" text-anchor="${anchor}" font-size="11" fill="rgba(255,255,255,0.5)">(Root)</text>
+  `;
+}
+
+// ---- state ----
+const state = { hours: 24, tilted: true, tiltDeg: TILT_ANGLE, playing: false, gravityOn: false, magnifierOn: false };
+let tiltAnimId = null;
+let playAnimId = null;
+const tipPositions = { leftShoot: null, leftRoot: null, rightShoot: null, rightRoot: null };
+
+function computeRightOrigin(tiltDeg) {
+  const pivotX = rightX, pivotY = groundY - potH / 2;
+  const rel = rotatePoint(0, soilSurfaceY - pivotY, tiltDeg);
+  return { x: pivotX + rel.x, y: pivotY + rel.y };
+}
+
+function render() {
+  const { hours, tilted, tiltDeg } = state;
+
+  const leftShoot  = buildOrganPath({ originX: leftX, originY: soilSurfaceY, preTilt: SHOOT_PRETILT, rate: SHOOT_RATE, tau: SHOOT_TAU, hours, vSign: -1, tiltDeg: 0, wobbleSeed: WOBBLE_SEEDS.leftShoot });
+  const leftRoot   = buildOrganPath({ originX: leftX, originY: soilSurfaceY, preTilt: ROOT_PRETILT,  rate: ROOT_RATE,  tau: ROOT_TAU,  hours, vSign:  1, tiltDeg: 0, wobbleSeed: WOBBLE_SEEDS.leftRoot });
+  const rightOrigin = computeRightOrigin(tiltDeg);
+  const rightShoot = buildOrganPath({ originX: rightOrigin.x, originY: rightOrigin.y, preTilt: SHOOT_PRETILT, rate: SHOOT_RATE, tau: SHOOT_TAU, hours, vSign: -1, tiltDeg, wobbleSeed: WOBBLE_SEEDS.rightShoot });
+  const rightRoot  = buildOrganPath({ originX: rightOrigin.x, originY: rightOrigin.y, preTilt: ROOT_PRETILT,  rate: ROOT_RATE,  tau: ROOT_TAU,  hours, vSign:  1, tiltDeg, wobbleSeed: WOBBLE_SEEDS.rightRoot });
+
+  document.getElementById("soilClipLeftPath").setAttribute("d", soilPolygonPath(leftX, 0));
+  document.getElementById("soilClipRightPath").setAttribute("d", soilPolygonPath(rightX, tiltDeg));
+
+  document.getElementById("leftPlant").innerHTML  = plantMarkup(leftShoot, leftRoot, false, "soilClipLeft");
+  document.getElementById("rightPlant").innerHTML = plantMarkup(rightShoot, rightRoot, true, "soilClipRight") + tiltDotsMarkup(rightShoot, rightRoot, tilted);
+  document.getElementById("callouts").innerHTML   = calloutsMarkup(rightShoot, rightRoot, tiltDeg, tilted, hours);
+  document.getElementById("rightPot").setAttribute("transform", `rotate(${tiltDeg} ${rightX} ${groundY - potH / 2})`);
+
+  tipPositions.leftShoot  = leftShoot.pts[leftShoot.pts.length - 1];
+  tipPositions.leftRoot   = leftRoot.pts[leftRoot.pts.length - 1];
+  tipPositions.rightShoot = rightShoot.pts[rightShoot.pts.length - 1];
+  tipPositions.rightRoot  = rightRoot.pts[rightRoot.pts.length - 1];
+
+  document.getElementById("hoursSlider").value = hours;
+  document.getElementById("hoursReadout").textContent = `t = ${Math.round(hours)}h`;
+
+  const fullEl = document.getElementById("narrationFull");
+  const fullText = document.getElementById("narrationFullText");
+  const cardsEl = document.getElementById("narrationCards");
+  const shootStat = document.getElementById("shootStat");
+  const rootStat = document.getElementById("rootStat");
+
+  if (!tilted) {
+    fullText.textContent = "Both pots are upright — tap Tilt to start the experiment.";
+    fullEl.style.display = "block";
+    cardsEl.style.display = "none";
+  } else if (hours < LAG_H) {
+    fullText.textContent = "Just tilted — auxin is redistributing (short lag before cells respond).";
+    fullEl.style.display = "block";
+    cardsEl.style.display = "none";
+  } else if (hours < 1) {
+    fullText.textContent = "Carried sideways with the pot — watch the tips start steering back to vertical.";
+    fullEl.style.display = "block";
+    cardsEl.style.display = "none";
+  } else {
+    const shootAngle = Math.round(Math.abs(rightShoot.tipAngleDeg));
+    const rootAngle  = Math.round(Math.abs(rightRoot.tipAngleDeg));
+    const shootPct   = Math.round((1 - Math.exp(-Math.max(0, hours - LAG_H) / SHOOT_TAU)) * 100);
+    const rootPct    = Math.round((1 - Math.exp(-Math.max(0, hours - LAG_H) / ROOT_TAU)) * 100);
+    shootStat.textContent = `${shootAngle}\u00b0 off vertical \u00b7 ${shootPct}% corrected \u00b7 steering up`;
+    rootStat.textContent  = `${rootAngle}\u00b0 off vertical \u00b7 ${rootPct}% corrected \u00b7 steering down`;
+    fullEl.style.display = "none";
+    cardsEl.style.display = "flex";
+  }
+
+  const tiltBtn = document.getElementById("tiltBtn");
+  tiltBtn.classList.toggle("active", tilted);
+  tiltBtn.title = tilted ? "Tilted 45\u00b0 left \u2014 tap to stand upright" : "Upright \u2014 tap to tilt left 45\u00b0";
+  document.getElementById("playIcon").innerHTML = state.playing
+    ? '<rect x="6.5" y="5.5" width="4" height="13" rx="1"></rect><rect x="13.5" y="5.5" width="4" height="13" rx="1"></rect>'
+    : '<path d="M8 5.5v13l11-6.5z"></path>';
+  document.getElementById("playBtn").title = state.playing ? "Pause" : "Play";
+}
+
+function animateTilt(target) {
+  if (tiltAnimId) cancelAnimationFrame(tiltAnimId);
+  const start = state.tiltDeg;
+  const startTime = performance.now();
+  function step(now) {
+    const p = Math.min(1, (now - startTime) / TILT_ANIM_MS);
+    const eased = 1 - Math.pow(1 - p, 3);
+    state.tiltDeg = start + (target - start) * eased;
+    render();
+    if (p < 1) tiltAnimId = requestAnimationFrame(step);
+  }
+  tiltAnimId = requestAnimationFrame(step);
+}
+
+let gravityFlowId = null;
+let gravityStartTime = null;
+
+function stepGravityFlow(now) {
+  if (gravityStartTime === null) gravityStartTime = now;
+  const elapsed = now - gravityStartTime;
+  document.getElementById("gravityFxLeft").innerHTML  = gravityLinesFrame(leftX, elapsed);
+  document.getElementById("gravityFxRight").innerHTML = gravityLinesFrame(rightX, elapsed);
+  if (state.gravityOn) gravityFlowId = requestAnimationFrame(stepGravityFlow);
+}
+
+function gravityJerk() {
+  const duration = 500, startTime = performance.now();
+  const leftAssembly  = document.getElementById("leftAssembly");
+  const rightAssembly = document.getElementById("rightAssembly");
+  function step(now) {
+    const p = Math.min(1, (now - startTime) / duration);
+    const jerk = 4 * Math.sin(Math.PI * p);
+    leftAssembly.setAttribute("transform",  `translate(0, ${jerk.toFixed(2)})`);
+    rightAssembly.setAttribute("transform", `translate(0, ${jerk.toFixed(2)})`);
+    if (p < 1) requestAnimationFrame(step);
+    else {
+      leftAssembly.removeAttribute("transform");
+      rightAssembly.removeAttribute("transform");
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+function setGravityFlow(on) {
+  state.gravityOn = on;
+  document.getElementById("gravityBtn").classList.toggle("active", on);
+  document.getElementById("gravityBtn").title = on ? "Stop Gravity" : "Simulate Gravity";
+  if (on) {
+    gravityJerk();
+    gravityStartTime = null;
+    if (gravityFlowId) cancelAnimationFrame(gravityFlowId);
+    gravityFlowId = requestAnimationFrame(stepGravityFlow);
+  } else {
+    if (gravityFlowId) cancelAnimationFrame(gravityFlowId);
+    document.getElementById("gravityFxLeft").innerHTML  = "";
+    document.getElementById("gravityFxRight").innerHTML = "";
+  }
+}
+
+/* -----------------------------------------------------------------------
+   MAGNIFIER — auxin particle physics
+   ----------------------------------------------------------------------- */
+const TIP_RX = 110, TIP_RY = 56;
+const MAG_PARTICLE_COUNT = 34;
+const MAG_TIP_THRESHOLD  = 198;
+const LEFT_X          = -134;  // left (cut) edge of the root body
+const TIP_X           = 118;   // the tip point
+const HALF_H          = 60;    // half-height of the untapered body
+const RIGID_BOUNDARY_X = 33;   // elongation zone begins here (matches the old hinge point) — nothing left of this grows
+// Generous safety-net clip — comfortably contains the mesh even at max bend
+// + max growth combined, so it never fights legitimate animation.
+const CLIP_OUTLINE_D = `M ${LEFT_X - 6} -186 L ${TIP_X + 35} -186 L ${TIP_X + 35} 90 L ${LEFT_X - 6} 90 Z`;
+const MAG_ARROW_D  = "M 19 -13 Q 51 -31 70 -3";
+
+
+let magX = 150, magY = 150;
+let magDragging = false;
+let magAnimId = null;
+let redZoneX = 0, redZoneY = 0;
+const magParticles = [];
+
+function initMagParticles() {
+  magParticles.length = 0;
+  const host = document.getElementById("magParticles");
+  host.innerHTML = "";
+  for (let i = 0; i < MAG_PARTICLE_COUNT; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(Math.random()) * 0.88;
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    el.setAttribute("r", "3.6");
+    el.setAttribute("fill", "url(#auxinGlow)");
+    el.setAttribute("stroke", "rgba(60,38,6,0.65)");
+    el.setAttribute("stroke-width", "0.9");
+    host.appendChild(el);
+    magParticles.push({
+      x: Math.cos(a) * TIP_RX * r,
+      y: Math.sin(a) * TIP_RY * r,
+      vx: 0, vy: 0,
+      biasFactor: 0.6 + Math.random() * 0.8,
+      el,
+    });
+  }
+}
+
+function toSvgPoint(evt) {
+  const svg = document.getElementById("scene");
+  const pt  = svg.createSVGPoint();
+  pt.x = evt.clientX;
+  pt.y = evt.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+let magStimIntensity = 0;
+let magOrganMatch = null;
+
+function updateMagLabel() {
+  const candidates = [
+    { key: "leftShoot",  name: "Shoot Tip", tint: "rgba(90,160,70,0.16)",  pot: "left"  },
+    { key: "leftRoot",   name: "Root Tip",  tint: "rgba(180,140,70,0.16)", pot: "left"  },
+    { key: "rightShoot", name: "Shoot Tip", tint: "rgba(90,160,70,0.16)",  pot: "right" },
+    { key: "rightRoot",  name: "Root Tip",  tint: "rgba(180,140,70,0.16)", pot: "right" },
+  ];
+  let best = null, bestDist = Infinity;
+  candidates.forEach((c) => {
+    const p = tipPositions[c.key];
+    if (!p) return;
+    const d = Math.hypot(p.x - magX, p.y - magY);
+    if (d < bestDist) { bestDist = d; best = c; }
+  });
+  const labelEl = document.getElementById("magLabelText");
+  const tintEl  = document.getElementById("magTint");
+  if (best && bestDist < MAG_TIP_THRESHOLD) {
+    labelEl.textContent = best.name;
+    tintEl.setAttribute("fill", best.tint);
+    tintEl.setAttribute("opacity", "1");
+    magOrganMatch = best;
+  } else {
+    labelEl.textContent = "Auxin View";
+    tintEl.setAttribute("opacity", "0");
+    magOrganMatch = null;
+  }
+  const angle = best && best.pot === "right" ? Math.abs(state.tiltDeg) : 0;
+  magStimIntensity = Math.min(1, angle / Math.abs(TILT_ANGLE));
+}
+
+/* -----------------------------------------------------------------------
+   DEFORMABLE, BENDING CELL MESH for the magnifier root body
+   -----------------------------------------------------------------------
+   Strategy: pre-allocate N_ROWS × N_COLS SVG <path> elements once in
+   initCellGrid(). Each frame, updateCellGrid(stim, curlAngle) recomputes
+   vertex positions and writes them to the existing elements' `d`
+   attributes — no element creation/destruction, no overlays.
+
+   Unlike a row-height-only mesh (which just looks lopsided, not bent),
+   this builds an actual curved centerline first — rigid and straight
+   from LEFT_X to RIGID_BOUNDARY_X, then smoothstep-eased curvature from
+   there to the tip (same principle as the main organ's curve fix, just
+   walked point-by-point instead of applied as one rigid rotation). Row
+   boundaries are offset PERPENDICULAR to that centerline's local
+   tangent at each point, so the whole mesh follows the bend. Adjacent
+   cells share the exact same computed boundary points — zero gaps by
+   construction, no matter how sharply it curves.
+
+   Upper rows (low-auxin side) grow with stim, concentrated near the tip
+   via the same smoothstep ramp that drives the bend itself (growth is
+   what *causes* the bend, so they scale together). Lower rows (high-
+   auxin side) only follow the anatomical taper, never stim — inhibited.
+   ----------------------------------------------------------------------- */
+const RIGID_STEPS = 4;   // centerline points in the straight (non-elongating) section
+const CURL_STEPS  = 20;  // centerline points in the bending elongation zone
+const N_UPPER    = 4;    // rows above the auxin axis
+const N_LOWER    = 4;    // rows below the auxin axis
+const N_ROWS     = N_UPPER + N_LOWER;
+const BASE_ROW_H = (HALF_H - 2) / N_UPPER;
+const MAX_CURL_DEG = 90;
+
+// Stable fill palette: upper (elongating) ↔ lower (inhibited), checker pattern
+const FILL_UPPER = ["#ede0bd", "#e3d3a9"];
+const FILL_LOWER = ["#d4c08a", "#c9b47e"];
+
+let CELL_PATHS = [];
+
+function initCellGrid() {
+  const g = document.getElementById("magCellGrid");
+  if (!g) return;
+  g.innerHTML = "";
+  CELL_PATHS = [];
+  const NS = "http://www.w3.org/2000/svg";
+  const nCols = RIGID_STEPS + CURL_STEPS;
+  for (let r = 0; r < N_ROWS; r++) {
+    for (let c = 0; c < nCols; c++) {
+      const el = document.createElementNS(NS, "path");
+      const isUpper = r < N_UPPER;
+      el.setAttribute("fill", isUpper ? FILL_UPPER[c % 2] : FILL_LOWER[c % 2]);
+      el.setAttribute("stroke", "rgba(100,78,42,0.42)");
+      el.setAttribute("stroke-width", "0.75");
+      el.setAttribute("stroke-linejoin", "round");
+      g.appendChild(el);
+      CELL_PATHS.push({ el, col: c, row: r });
+    }
+  }
+}
+
+function updateCellGrid(stim, curlAngle) {
+  if (!CELL_PATHS.length) return;
+
+  // 1. Build the centerline.
+  const centerline = [];
+  for (let i = 0; i <= RIGID_STEPS; i++) {
+    const x = LEFT_X + (RIGID_BOUNDARY_X - LEFT_X) * (i / RIGID_STEPS);
+    centerline.push({ x, y: 0, rad: 0 });
+  }
+  const zoneLen = TIP_X - RIGID_BOUNDARY_X;
+  const segLen = zoneLen / CURL_STEPS;
+  let cx = RIGID_BOUNDARY_X, cy = 0;
+  for (let i = 1; i <= CURL_STEPS; i++) {
+    const s = i / CURL_STEPS;
+    const rad = toRad(smoothstep(s) * curlAngle);
+    cx += Math.cos(rad) * segLen;
+    cy += Math.sin(rad) * segLen;
+    centerline.push({ x: cx, y: cy, rad });
+  }
+  const M = centerline.length; // RIGID_STEPS + 1 + CURL_STEPS
+
+  // 2. At every centerline point, compute row-boundary positions offset
+  //    perpendicular to the local tangent — upper and lower separately.
+  const upperB = []; for (let k = 0; k <= N_UPPER; k++) upperB.push(new Array(M));
+  const lowerB = []; for (let k = 0; k <= N_LOWER; k++) lowerB.push(new Array(M));
+
+  for (let i = 0; i < M; i++) {
+    const pt = centerline[i];
+    const s = i <= RIGID_STEPS ? 0 : (i - RIGID_STEPS) / CURL_STEPS;
+    let taper = 1;
+    if (s > 0.5) taper = 1 - smoothstep((s - 0.5) / 0.5) * 0.85; // floors at 0.15
+    const growthRamp = smoothstep(s); // same ramp driving the bend — growth causes it
+
+    const upperExtent = BASE_ROW_H * N_UPPER * taper * (1 + stim * 0.9 * growthRamp);
+    const lowerExtent = BASE_ROW_H * N_LOWER * taper;
+    const upX = Math.sin(pt.rad), upY = -Math.cos(pt.rad);
+    const dnX = -Math.sin(pt.rad), dnY = Math.cos(pt.rad);
+
+    for (let k = 0; k <= N_UPPER; k++) {
+      const d = (upperExtent / N_UPPER) * k;
+      upperB[k][i] = { x: pt.x + upX * d, y: pt.y + upY * d };
+    }
+    for (let k = 0; k <= N_LOWER; k++) {
+      const d = (lowerExtent / N_LOWER) * k;
+      lowerB[k][i] = { x: pt.x + dnX * d, y: pt.y + dnY * d };
+    }
+  }
+
+  // 3. Each cell quad is built from shared boundary points — adjacent
+  //    cells reference the identical {x,y} values at their common edge,
+  //    so there is no floating-point way for a gap to appear.
+  CELL_PATHS.forEach(({ el, row, col }) => {
+    let p1, p2, p3, p4;
+    if (row < N_UPPER) {
+      const k = N_UPPER - row, kIn = k - 1;
+      p1 = upperB[k][col];   p2 = upperB[k][col + 1];
+      p3 = upperB[kIn][col + 1]; p4 = upperB[kIn][col];
+    } else {
+      const r = row - N_UPPER;
+      p1 = lowerB[r][col];       p2 = lowerB[r][col + 1];
+      p3 = lowerB[r + 1][col + 1]; p4 = lowerB[r + 1][col];
+    }
+    el.setAttribute("d",
+      `M${p1.x.toFixed(2)},${p1.y.toFixed(2)}` +
+      `L${p2.x.toFixed(2)},${p2.y.toFixed(2)}` +
+      `L${p3.x.toFixed(2)},${p3.y.toFixed(2)}` +
+      `L${p4.x.toFixed(2)},${p4.y.toFixed(2)}Z`
+    );
+  });
+}
+
+function stepMagnifier(now) {
+  updateMagLabel();
+  const bias    = 0.11 * magStimIntensity;
+  const springK = 0.0035 + 0.007 * (1 - magStimIntensity);
+  let sumX = 0, sumY = 0;
+  magParticles.forEach((p) => {
+    p.vx += (Math.random() - 0.5) * 0.55 - p.x * springK;
+    p.vy += (Math.random() - 0.5) * 0.55 - p.y * springK + bias * p.biasFactor;
+    p.vx *= 0.88;
+    p.vy *= 0.88;
+    p.x  += p.vx;
+    p.y  += p.vy;
+    const nx = p.x / TIP_RX, ny = p.y / TIP_RY;
+    const d  = Math.hypot(nx, ny);
+    if (d > 0.96) {
+      const s = 0.96 / d;
+      p.x *= s; p.y *= s;
+      p.vx *= -0.55; p.vy *= -0.55;
+    }
+    p.el.setAttribute("cx", p.x.toFixed(1));
+    p.el.setAttribute("cy", p.y.toFixed(1));
+    sumX += p.x; sumY += p.y;
+  });
+
+  redZoneX += (sumX / magParticles.length - redZoneX) * 0.06;
+  redZoneY += (sumY / magParticles.length - redZoneY) * 0.06;
+  const zoneEl   = document.getElementById("magRedZone");
+  const zoneSize = 14 + 36 * magStimIntensity;
+  zoneEl.setAttribute("cx", redZoneX.toFixed(1));
+  zoneEl.setAttribute("cy", redZoneY.toFixed(1));
+  zoneEl.setAttribute("rx", zoneSize.toFixed(1));
+  zoneEl.setAttribute("ry", (zoneSize * 0.62).toFixed(1));
+  zoneEl.setAttribute("opacity", Math.min(1, magStimIntensity * 1.3).toFixed(2));
+
+  /* [9] Time factor = same exponential model as the main simulation, so the
+         magnifier and the plant agree at every t. Drives how much of the
+         cell mesh's growth ramp — and bend — is "switched on" right now. */
+  const timeFactor = 1 - Math.exp(-Math.max(0, state.hours - LAG_H) / ROOT_TAU);
+
+  // Deform the pre-allocated, bending cell mesh — zero stim on the control
+  // pot so it stays straight and symmetric when untilted.
+  const cellStim = (magOrganMatch && magOrganMatch.pot === "right")
+    ? magStimIntensity * timeFactor
+    : 0;
+  let curlDir = 0;
+  if (magOrganMatch && magOrganMatch.pot === "right") curlDir = 1;
+  const curlAngle = curlDir * MAX_CURL_DEG * magStimIntensity * timeFactor;
+  updateCellGrid(cellStim, curlAngle);
+
+  const bioEl = document.getElementById("magBioText");
+  if (magOrganMatch && magOrganMatch.pot === "right" && magStimIntensity > 0.12) {
+    bioEl.textContent = magOrganMatch.name === "Root Tip"
+      ? "High auxin \u2192 inhibits root elongation"
+      : "High auxin \u2192 stimulates shoot elongation";
+    bioEl.setAttribute("opacity", Math.min(1, (magStimIntensity - 0.12) * 2).toFixed(2));
+  } else {
+    bioEl.setAttribute("opacity", "0");
+  }
+
+  const arrowOp = 0.55 + Math.sin(now / 550) * 0.2;
+  document.getElementById("magArrow").setAttribute("stroke-opacity", arrowOp.toFixed(2));
+
+  if (state.magnifierOn) magAnimId = requestAnimationFrame(stepMagnifier);
+}
+
+function positionMagnifier() {
+  document.getElementById("magnifier").setAttribute("transform", `translate(${magX.toFixed(1)}, ${magY.toFixed(1)})`);
+}
+
+function setMagnifier(on) {
+  state.magnifierOn = on;
+  const mag = document.getElementById("magnifier");
+  document.getElementById("magBtn").classList.toggle("active", on);
+  document.getElementById("magBtn").title = on ? "Hide Magnifier" : "Show Magnifier";
+  if (on) {
+    mag.style.display = "block";
+    requestAnimationFrame(() => mag.setAttribute("opacity", "1"));
+    if (magAnimId) cancelAnimationFrame(magAnimId);
+    magAnimId = requestAnimationFrame(stepMagnifier);
+  } else {
+    mag.setAttribute("opacity", "0");
+    if (magAnimId) cancelAnimationFrame(magAnimId);
+    setTimeout(() => { if (!state.magnifierOn) mag.style.display = "none"; }, 300);
+  }
+}
+
+function startPlay() {
+  if (playAnimId) cancelAnimationFrame(playAnimId);
+  const startHours = state.hours;
+  const remaining  = Math.max(0, MAX_HOURS - startHours);
+  const duration   = 22000 * (remaining / MAX_HOURS) || 200;
+  const startTime  = performance.now();
+  function step(now) {
+    const p = Math.min(1, (now - startTime) / duration);
+    state.hours = startHours + remaining * p;
+    if (p < 1 && state.playing) {
+      render();
+      playAnimId = requestAnimationFrame(step);
+    } else {
+      state.playing = false;
+      render();
+    }
+  }
+  playAnimId = requestAnimationFrame(step);
+}
+
+document.getElementById("tiltBtn").addEventListener("click", () => {
+  state.tilted = !state.tilted;
+  animateTilt(state.tilted ? TILT_ANGLE : 0);
+});
+
+document.getElementById("playBtn").addEventListener("click", () => {
+  state.playing = !state.playing;
+  if (state.playing) startPlay();
+  else {
+    if (playAnimId) cancelAnimationFrame(playAnimId);
+    render();
+  }
+});
+
+document.getElementById("resetBtn").addEventListener("click", (e) => {
+  state.playing = false;
+  if (playAnimId) cancelAnimationFrame(playAnimId);
+  state.hours = 0;
+  render();
+  const btn = e.currentTarget;
+  btn.classList.remove("pulse");
+  void btn.offsetWidth; // restart the animation even on rapid repeat clicks
+  btn.classList.add("pulse");
+  btn.addEventListener("animationend", () => btn.classList.remove("pulse"), { once: true });
+});
+
+document.getElementById("gravityBtn").addEventListener("click", () => {
+  setGravityFlow(!state.gravityOn);
+});
+
+document.getElementById("magBtn").addEventListener("click", () => {
+  setMagnifier(!state.magnifierOn);
+});
+
+(function setupMagnifierDrag() {
+  const mag = document.getElementById("magnifier");
+  mag.addEventListener("pointerdown", (e) => {
+    magDragging = true;
+    mag.classList.add("dragging");
+    mag.setPointerCapture(e.pointerId);
+  });
+  mag.addEventListener("pointermove", (e) => {
+    if (!magDragging) return;
+    const p = toSvgPoint(e);
+    magX = Math.max(166, Math.min(724, p.x));
+    magY = Math.max(176, Math.min(329, p.y));
+    positionMagnifier();
+  });
+  mag.addEventListener("pointerup", (e) => {
+    magDragging = false;
+    mag.classList.remove("dragging");
+    mag.releasePointerCapture(e.pointerId);
+  });
+  mag.addEventListener("pointercancel", () => {
+    magDragging = false;
+    mag.classList.remove("dragging");
+  });
+})();
+
+document.getElementById("hoursSlider").addEventListener("input", (e) => {
+  state.playing = false;
+  if (playAnimId) cancelAnimationFrame(playAnimId);
+  state.hours = Number(e.target.value);
+  render();
+});
+
+// ---- init ----
+document.getElementById("leftPot").innerHTML = potInnerSVG(leftX);
+document.getElementById("leftPot").setAttribute("transform", `rotate(0 ${leftX} ${groundY - potH / 2})`);
+document.getElementById("rightPot").innerHTML = potInnerSVG(rightX);
+document.getElementById("rightPot").setAttribute("transform", `rotate(${state.tiltDeg} ${rightX} ${groundY - potH / 2})`);
+document.getElementById("capBodyClipPath").setAttribute("d", CLIP_OUTLINE_D);
+document.getElementById("magArrow").setAttribute("d", MAG_ARROW_D);
+initMagParticles();
+initCellGrid();
+positionMagnifier();
+render();
+</script>
+</body>
+</html>
