@@ -1,7 +1,7 @@
 # Geotropism Simulator 🌱
 
 <p align="center">
-  <img src="repository-banner/assets/banner.png" alt="Geotropism Simulator Banner" width="100%">
+  <img src="assets/banner.png" alt="Geotropism Simulator Banner" width="100%">
 </p>
 
 A clean, interactive educational web simulation modeling plant root gravitropism (geotropism). Explore how plant roots perceive and respond to gravity, the role of auxin distribution, and how tilting affects root growth direction.
