@@ -17,15 +17,15 @@
     justify-content: center;
   }
   .wrap { width: 100%; max-width: 960px; }
-  .app-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .app-header { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 20px; }
   .app-icon-wrap {
     width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: radial-gradient(circle, rgba(90,160,255,0.32), rgba(90,160,255,0) 72%);
     box-shadow: 0 0 24px 7px rgba(80,150,255,0.4);
   }
-  .app-title { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; margin: 0; color: #fff; }
-  .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin: 0 0 16px 0; }
+  .app-title { font-size: 23px; font-weight: 700; letter-spacing: 0.02em; margin: 0; color: #fff; text-transform: uppercase; }
+  .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin: 0 0 16px 0; text-align: center; }
   .panel {
     border: 1px solid rgba(255,255,255,0.1);
     background: #131519;
@@ -100,9 +100,9 @@
         <path d="M17 31 L21.5 35.5 L26 30.5" fill="none" stroke="#bcdcff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
     </div>
-    <h2 class="app-title">Geotropism Stimulator</h2>
+    <h2 class="app-title">Phyto - Gaia</h2>
   </div>
-  <p class="subtitle">Drag the magnifier onto a tip, then tilt the pot to see auxin redistribute and the tip curl.</p>
+  <p class="subtitle">Geotropism Simulator</p>
 
   <div class="panel">
     <svg id="scene" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
